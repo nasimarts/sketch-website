@@ -1,59 +1,39 @@
-![Async Logo](https://raw.githubusercontent.com/caolan/async/master/logo/async-logo_readme.jpg)
+# lodash v4.18.1
 
-![Github Actions CI status](https://github.com/caolan/async/actions/workflows/ci.yml/badge.svg)
-[![NPM version](https://img.shields.io/npm/v/async.svg)](https://www.npmjs.com/package/async)
-[![Coverage Status](https://coveralls.io/repos/caolan/async/badge.svg?branch=master)](https://coveralls.io/r/caolan/async?branch=master)
-[![Join the chat at https://gitter.im/caolan/async](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/caolan/async?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![jsDelivr Hits](https://data.jsdelivr.com/v1/package/npm/async/badge?style=rounded)](https://www.jsdelivr.com/package/npm/async)
+The [Lodash](https://lodash.com/) library exported as [Node.js](https://nodejs.org/) modules.
 
-<!--
-|Linux|Windows|MacOS|
-|-|-|-|
-|[![Linux Build Status](https://dev.azure.com/caolanmcmahon/async/_apis/build/status/caolan.async?branchName=master&jobName=Linux&configuration=Linux%20node_10_x)](https://dev.azure.com/caolanmcmahon/async/_build/latest?definitionId=1&branchName=master) | [![Windows Build Status](https://dev.azure.com/caolanmcmahon/async/_apis/build/status/caolan.async?branchName=master&jobName=Windows&configuration=Windows%20node_10_x)](https://dev.azure.com/caolanmcmahon/async/_build/latest?definitionId=1&branchName=master) | [![MacOS Build Status](https://dev.azure.com/caolanmcmahon/async/_apis/build/status/caolan.async?branchName=master&jobName=OSX&configuration=OSX%20node_10_x)](https://dev.azure.com/caolanmcmahon/async/_build/latest?definitionId=1&branchName=master)| -->
+## Installation
 
-Async is a utility module which provides straight-forward, powerful functions for working with [asynchronous JavaScript](http://caolan.github.io/async/v3/global.html). Although originally designed for use with [Node.js](https://nodejs.org/) and installable via `npm i async`, it can also be used directly in the browser.  An ESM/MJS version is included in the main `async` package that should automatically be used with compatible bundlers such as Webpack and Rollup.
-
-A pure ESM version of Async is available as [`async-es`](https://www.npmjs.com/package/async-es).
-
-For Documentation, visit <https://caolan.github.io/async/>
-
-*For Async v1.5.x documentation, go [HERE](https://github.com/caolan/async/blob/v1.5.2/README.md)*
-
-
-```javascript
-// for use with Node-style callbacks...
-var async = require("async");
-
-var obj = {dev: "/dev.json", test: "/test.json", prod: "/prod.json"};
-var configs = {};
-
-async.forEachOf(obj, (value, key, callback) => {
-    fs.readFile(__dirname + value, "utf8", (err, data) => {
-        if (err) return callback(err);
-        try {
-            configs[key] = JSON.parse(data);
-        } catch (e) {
-            return callback(e);
-        }
-        callback();
-    });
-}, err => {
-    if (err) console.error(err.message);
-    // configs is now a map of JSON data
-    doSomethingWith(configs);
-});
+Using npm:
+```shell
+$ npm i -g npm
+$ npm i --save lodash
 ```
 
-```javascript
-var async = require("async");
+In Node.js:
+```js
+// Load the full build.
+var _ = require('lodash');
+// Load the core build.
+var _ = require('lodash/core');
+// Load the FP build for immutable auto-curried iteratee-first data-last methods.
+var fp = require('lodash/fp');
 
-// ...or ES2017 async functions
-async.mapLimit(urls, 5, async function(url) {
-    const response = await fetch(url)
-    return response.body
-}, (err, results) => {
-    if (err) throw err
-    // results is now an array of the response bodies
-    console.log(results)
-})
+// Load method categories.
+var array = require('lodash/array');
+var object = require('lodash/fp/object');
+
+// Cherry-pick methods for smaller browserify/rollup/webpack bundles.
+var at = require('lodash/at');
+var curryN = require('lodash/fp/curryN');
 ```
+
+See the [package source](https://github.com/lodash/lodash/tree/4.18.1-npm) for more details.
+
+**Note:**<br>
+Install [n_](https://www.npmjs.com/package/n_) for Lodash use in the Node.js < 6 REPL.
+
+## Support
+
+Tested in Chrome 74-75, Firefox 66-67, IE 11, Edge 18, Safari 11-12, & Node.js 8-12.<br>
+Automated [browser](https://saucelabs.com/u/lodash) & [CI](https://travis-ci.org/lodash/lodash/) test runs are available.

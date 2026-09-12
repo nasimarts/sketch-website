@@ -1,91 +1,73 @@
-'use strict';
+var MapCache = require('./_MapCache');
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = memoize;
-
-var _setImmediate = require('./internal/setImmediate.js');
-
-var _setImmediate2 = _interopRequireDefault(_setImmediate);
-
-var _initialParams = require('./internal/initialParams.js');
-
-var _initialParams2 = _interopRequireDefault(_initialParams);
-
-var _wrapAsync = require('./internal/wrapAsync.js');
-
-var _wrapAsync2 = _interopRequireDefault(_wrapAsync);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+/** Error message constants. */
+var FUNC_ERROR_TEXT = 'Expected a function';
 
 /**
- * Caches the results of an async function. When creating a hash to store
- * function results against, the callback is omitted from the hash and an
- * optional hash function can be used.
+ * Creates a function that memoizes the result of `func`. If `resolver` is
+ * provided, it determines the cache key for storing the result based on the
+ * arguments provided to the memoized function. By default, the first argument
+ * provided to the memoized function is used as the map cache key. The `func`
+ * is invoked with the `this` binding of the memoized function.
  *
- * **Note: if the async function errs, the result will not be cached and
- * subsequent calls will call the wrapped function.**
+ * **Note:** The cache is exposed as the `cache` property on the memoized
+ * function. Its creation may be customized by replacing the `_.memoize.Cache`
+ * constructor with one whose instances implement the
+ * [`Map`](http://ecma-international.org/ecma-262/7.0/#sec-properties-of-the-map-prototype-object)
+ * method interface of `clear`, `delete`, `get`, `has`, and `set`.
  *
- * If no hash function is specified, the first argument is used as a hash key,
- * which may work reasonably if it is a string or a data type that converts to a
- * distinct string. Note that objects and arrays will not behave reasonably.
- * Neither will cases where the other arguments are significant. In such cases,
- * specify your own hash function.
- *
- * The cache of results is exposed as the `memo` property of the function
- * returned by `memoize`.
- *
- * @name memoize
  * @static
- * @memberOf module:Utils
- * @method
- * @category Util
- * @param {AsyncFunction} fn - The async function to proxy and cache results from.
- * @param {Function} hasher - An optional function for generating a custom hash
- * for storing results. It has all the arguments applied to it apart from the
- * callback, and must be synchronous.
- * @returns {AsyncFunction} a memoized version of `fn`
+ * @memberOf _
+ * @since 0.1.0
+ * @category Function
+ * @param {Function} func The function to have its output memoized.
+ * @param {Function} [resolver] The function to resolve the cache key.
+ * @returns {Function} Returns the new memoized function.
  * @example
  *
- * var slow_fn = function(name, callback) {
- *     // do something
- *     callback(null, result);
- * };
- * var fn = async.memoize(slow_fn);
+ * var object = { 'a': 1, 'b': 2 };
+ * var other = { 'c': 3, 'd': 4 };
  *
- * // fn can now be used as if it were slow_fn
- * fn('some name', function() {
- *     // callback
- * });
+ * var values = _.memoize(_.values);
+ * values(object);
+ * // => [1, 2]
+ *
+ * values(other);
+ * // => [3, 4]
+ *
+ * object.a = 2;
+ * values(object);
+ * // => [1, 2]
+ *
+ * // Modify the result cache.
+ * values.cache.set(object, ['a', 'b']);
+ * values(object);
+ * // => ['a', 'b']
+ *
+ * // Replace `_.memoize.Cache`.
+ * _.memoize.Cache = WeakMap;
  */
-function memoize(fn, hasher = v => v) {
-    var memo = Object.create(null);
-    var queues = Object.create(null);
-    var _fn = (0, _wrapAsync2.default)(fn);
-    var memoized = (0, _initialParams2.default)((args, callback) => {
-        var key = hasher(...args);
-        if (key in memo) {
-            (0, _setImmediate2.default)(() => callback(null, ...memo[key]));
-        } else if (key in queues) {
-            queues[key].push(callback);
-        } else {
-            queues[key] = [callback];
-            _fn(...args, (err, ...resultArgs) => {
-                // #1465 don't memoize if an error occurred
-                if (!err) {
-                    memo[key] = resultArgs;
-                }
-                var q = queues[key];
-                delete queues[key];
-                for (var i = 0, l = q.length; i < l; i++) {
-                    q[i](err, ...resultArgs);
-                }
-            });
-        }
-    });
-    memoized.memo = memo;
-    memoized.unmemoized = fn;
-    return memoized;
+function memoize(func, resolver) {
+  if (typeof func != 'function' || (resolver != null && typeof resolver != 'function')) {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  var memoized = function() {
+    var args = arguments,
+        key = resolver ? resolver.apply(this, args) : args[0],
+        cache = memoized.cache;
+
+    if (cache.has(key)) {
+      return cache.get(key);
+    }
+    var result = func.apply(this, args);
+    memoized.cache = cache.set(key, result) || cache;
+    return result;
+  };
+  memoized.cache = new (memoize.Cache || MapCache);
+  return memoized;
 }
-module.exports = exports.default;
+
+// Expose `MapCache`.
+memoize.Cache = MapCache;
+
+module.exports = memoize;

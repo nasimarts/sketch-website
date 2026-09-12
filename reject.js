@@ -1,87 +1,46 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _reject2 = require('./internal/reject.js');
-
-var _reject3 = _interopRequireDefault(_reject2);
-
-var _eachOf = require('./eachOf.js');
-
-var _eachOf2 = _interopRequireDefault(_eachOf);
-
-var _awaitify = require('./internal/awaitify.js');
-
-var _awaitify2 = _interopRequireDefault(_awaitify);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var arrayFilter = require('./_arrayFilter'),
+    baseFilter = require('./_baseFilter'),
+    baseIteratee = require('./_baseIteratee'),
+    isArray = require('./isArray'),
+    negate = require('./negate');
 
 /**
- * The opposite of [`filter`]{@link module:Collections.filter}. Removes values that pass an `async` truth test.
+ * The opposite of `_.filter`; this method returns the elements of `collection`
+ * that `predicate` does **not** return truthy for.
  *
- * @name reject
  * @static
- * @memberOf module:Collections
- * @method
- * @see [async.filter]{@link module:Collections.filter}
+ * @memberOf _
+ * @since 0.1.0
  * @category Collection
- * @param {Array|Iterable|AsyncIterable|Object} coll - A collection to iterate over.
- * @param {Function} iteratee - An async truth test to apply to each item in
- * `coll`.
- * The should complete with a boolean value as its `result`.
- * Invoked with (item, callback).
- * @param {Function} [callback] - A callback which is called after all the
- * `iteratee` functions have finished. Invoked with (err, results).
- * @returns {Promise} a promise, if no callback is passed
+ * @param {Array|Object} collection The collection to iterate over.
+ * @param {Function} [predicate=_.identity] The function invoked per iteration.
+ * @returns {Array} Returns the new filtered array.
+ * @see _.filter
  * @example
  *
- * // dir1 is a directory that contains file1.txt, file2.txt
- * // dir2 is a directory that contains file3.txt, file4.txt
- * // dir3 is a directory that contains file5.txt
+ * var users = [
+ *   { 'user': 'barney', 'age': 36, 'active': false },
+ *   { 'user': 'fred',   'age': 40, 'active': true }
+ * ];
  *
- * const fileList = ['dir1/file1.txt','dir2/file3.txt','dir3/file6.txt'];
+ * _.reject(users, function(o) { return !o.active; });
+ * // => objects for ['fred']
  *
- * // asynchronous function that checks if a file exists
- * function fileExists(file, callback) {
- *    fs.access(file, fs.constants.F_OK, (err) => {
- *        callback(null, !err);
- *    });
- * }
+ * // The `_.matches` iteratee shorthand.
+ * _.reject(users, { 'age': 40, 'active': true });
+ * // => objects for ['barney']
  *
- * // Using callbacks
- * async.reject(fileList, fileExists, function(err, results) {
- *    // [ 'dir3/file6.txt' ]
- *    // results now equals an array of the non-existing files
- * });
+ * // The `_.matchesProperty` iteratee shorthand.
+ * _.reject(users, ['active', false]);
+ * // => objects for ['fred']
  *
- * // Using Promises
- * async.reject(fileList, fileExists)
- * .then( results => {
- *     console.log(results);
- *     // [ 'dir3/file6.txt' ]
- *     // results now equals an array of the non-existing files
- * }).catch( err => {
- *     console.log(err);
- * });
- *
- * // Using async/await
- * async () => {
- *     try {
- *         let results = await async.reject(fileList, fileExists);
- *         console.log(results);
- *         // [ 'dir3/file6.txt' ]
- *         // results now equals an array of the non-existing files
- *     }
- *     catch (err) {
- *         console.log(err);
- *     }
- * }
- *
+ * // The `_.property` iteratee shorthand.
+ * _.reject(users, 'active');
+ * // => objects for ['barney']
  */
-function reject(coll, iteratee, callback) {
-    return (0, _reject3.default)(_eachOf2.default, coll, iteratee, callback);
+function reject(collection, predicate) {
+  var func = isArray(collection) ? arrayFilter : baseFilter;
+  return func(collection, negate(baseIteratee(predicate, 3)));
 }
-exports.default = (0, _awaitify2.default)(reject, 3);
-module.exports = exports.default;
+
+module.exports = reject;
