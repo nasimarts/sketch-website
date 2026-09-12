@@ -1,0 +1,20 @@
+{
+  "name": "sketch-website",
+  "version": "1.0.0",
+  "description": "Saikat's Sketch Studio - Portfolio & Order Website",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "cloudinary": "^2.0.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "mongoose": "^8.2.0",
+    "multer": "^1.4.5-lts.1",
+    "multer-storage-cloudinary": "^4.0.0",
+    "uuid": "^10.0.0"
+  }
+}
