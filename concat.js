@@ -1,115 +1,43 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _concatLimit = require('./concatLimit.js');
-
-var _concatLimit2 = _interopRequireDefault(_concatLimit);
-
-var _awaitify = require('./internal/awaitify.js');
-
-var _awaitify2 = _interopRequireDefault(_awaitify);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var arrayPush = require('./_arrayPush'),
+    baseFlatten = require('./_baseFlatten'),
+    copyArray = require('./_copyArray'),
+    isArray = require('./isArray');
 
 /**
- * Applies `iteratee` to each item in `coll`, concatenating the results. Returns
- * the concatenated list. The `iteratee`s are called in parallel, and the
- * results are concatenated as they return. The results array will be returned in
- * the original order of `coll` passed to the `iteratee` function.
+ * Creates a new array concatenating `array` with any additional arrays
+ * and/or values.
  *
- * @name concat
  * @static
- * @memberOf module:Collections
- * @method
- * @category Collection
- * @alias flatMap
- * @param {Array|Iterable|AsyncIterable|Object} coll - A collection to iterate over.
- * @param {AsyncFunction} iteratee - A function to apply to each item in `coll`,
- * which should use an array as its result. Invoked with (item, callback).
- * @param {Function} [callback] - A callback which is called after all the
- * `iteratee` functions have finished, or an error occurs. Results is an array
- * containing the concatenated results of the `iteratee` function. Invoked with
- * (err, results).
- * @returns A Promise, if no callback is passed
+ * @memberOf _
+ * @since 4.0.0
+ * @category Array
+ * @param {Array} array The array to concatenate.
+ * @param {...*} [values] The values to concatenate.
+ * @returns {Array} Returns the new concatenated array.
  * @example
  *
- * // dir1 is a directory that contains file1.txt, file2.txt
- * // dir2 is a directory that contains file3.txt, file4.txt
- * // dir3 is a directory that contains file5.txt
- * // dir4 does not exist
+ * var array = [1];
+ * var other = _.concat(array, 2, [3], [[4]]);
  *
- * let directoryList = ['dir1','dir2','dir3'];
- * let withMissingDirectoryList = ['dir1','dir2','dir3', 'dir4'];
+ * console.log(other);
+ * // => [1, 2, 3, [4]]
  *
- * // Using callbacks
- * async.concat(directoryList, fs.readdir, function(err, results) {
- *    if (err) {
- *        console.log(err);
- *    } else {
- *        console.log(results);
- *        // [ 'file1.txt', 'file2.txt', 'file3.txt', 'file4.txt', file5.txt ]
- *    }
- * });
- *
- * // Error Handling
- * async.concat(withMissingDirectoryList, fs.readdir, function(err, results) {
- *    if (err) {
- *        console.log(err);
- *        // [ Error: ENOENT: no such file or directory ]
- *        // since dir4 does not exist
- *    } else {
- *        console.log(results);
- *    }
- * });
- *
- * // Using Promises
- * async.concat(directoryList, fs.readdir)
- * .then(results => {
- *     console.log(results);
- *     // [ 'file1.txt', 'file2.txt', 'file3.txt', 'file4.txt', file5.txt ]
- * }).catch(err => {
- *      console.log(err);
- * });
- *
- * // Error Handling
- * async.concat(withMissingDirectoryList, fs.readdir)
- * .then(results => {
- *     console.log(results);
- * }).catch(err => {
- *     console.log(err);
- *     // [ Error: ENOENT: no such file or directory ]
- *     // since dir4 does not exist
- * });
- *
- * // Using async/await
- * async () => {
- *     try {
- *         let results = await async.concat(directoryList, fs.readdir);
- *         console.log(results);
- *         // [ 'file1.txt', 'file2.txt', 'file3.txt', 'file4.txt', file5.txt ]
- *     } catch (err) {
- *         console.log(err);
- *     }
- * }
- *
- * // Error Handling
- * async () => {
- *     try {
- *         let results = await async.concat(withMissingDirectoryList, fs.readdir);
- *         console.log(results);
- *     } catch (err) {
- *         console.log(err);
- *         // [ Error: ENOENT: no such file or directory ]
- *         // since dir4 does not exist
- *     }
- * }
- *
+ * console.log(array);
+ * // => [1]
  */
-function concat(coll, iteratee, callback) {
-    return (0, _concatLimit2.default)(coll, Infinity, iteratee, callback);
+function concat() {
+  var length = arguments.length;
+  if (!length) {
+    return [];
+  }
+  var args = Array(length - 1),
+      array = arguments[0],
+      index = length;
+
+  while (index--) {
+    args[index - 1] = arguments[index];
+  }
+  return arrayPush(isArray(array) ? copyArray(array) : [array], baseFlatten(args, 1));
 }
-exports.default = (0, _awaitify2.default)(concat, 3);
-module.exports = exports.default;
+
+module.exports = concat;
