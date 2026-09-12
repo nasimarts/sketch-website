@@ -1,122 +1,51 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createTester = require('./internal/createTester.js');
-
-var _createTester2 = _interopRequireDefault(_createTester);
-
-var _eachOf = require('./eachOf.js');
-
-var _eachOf2 = _interopRequireDefault(_eachOf);
-
-var _awaitify = require('./internal/awaitify.js');
-
-var _awaitify2 = _interopRequireDefault(_awaitify);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+var arraySome = require('./_arraySome'),
+    baseIteratee = require('./_baseIteratee'),
+    baseSome = require('./_baseSome'),
+    isArray = require('./isArray'),
+    isIterateeCall = require('./_isIterateeCall');
 
 /**
- * Returns `true` if at least one element in the `coll` satisfies an async test.
- * If any iteratee call returns `true`, the main `callback` is immediately
- * called.
+ * Checks if `predicate` returns truthy for **any** element of `collection`.
+ * Iteration is stopped once `predicate` returns truthy. The predicate is
+ * invoked with three arguments: (value, index|key, collection).
  *
- * @name some
  * @static
- * @memberOf module:Collections
- * @method
- * @alias any
+ * @memberOf _
+ * @since 0.1.0
  * @category Collection
- * @param {Array|Iterable|AsyncIterable|Object} coll - A collection to iterate over.
- * @param {AsyncFunction} iteratee - An async truth test to apply to each item
- * in the collections in parallel.
- * The iteratee should complete with a boolean `result` value.
- * Invoked with (item, callback).
- * @param {Function} [callback] - A callback which is called as soon as any
- * iteratee returns `true`, or after all the iteratee functions have finished.
- * Result will be either `true` or `false` depending on the values of the async
- * tests. Invoked with (err, result).
- * @returns {Promise} a promise, if no callback provided
+ * @param {Array|Object} collection The collection to iterate over.
+ * @param {Function} [predicate=_.identity] The function invoked per iteration.
+ * @param- {Object} [guard] Enables use as an iteratee for methods like `_.map`.
+ * @returns {boolean} Returns `true` if any element passes the predicate check,
+ *  else `false`.
  * @example
  *
- * // dir1 is a directory that contains file1.txt, file2.txt
- * // dir2 is a directory that contains file3.txt, file4.txt
- * // dir3 is a directory that contains file5.txt
- * // dir4 does not exist
+ * _.some([null, 0, 'yes', false], Boolean);
+ * // => true
  *
- * // asynchronous function that checks if a file exists
- * function fileExists(file, callback) {
- *    fs.access(file, fs.constants.F_OK, (err) => {
- *        callback(null, !err);
- *    });
- * }
+ * var users = [
+ *   { 'user': 'barney', 'active': true },
+ *   { 'user': 'fred',   'active': false }
+ * ];
  *
- * // Using callbacks
- * async.some(['dir1/missing.txt','dir2/missing.txt','dir3/file5.txt'], fileExists,
- *    function(err, result) {
- *        console.log(result);
- *        // true
- *        // result is true since some file in the list exists
- *    }
- *);
+ * // The `_.matches` iteratee shorthand.
+ * _.some(users, { 'user': 'barney', 'active': false });
+ * // => false
  *
- * async.some(['dir1/missing.txt','dir2/missing.txt','dir4/missing.txt'], fileExists,
- *    function(err, result) {
- *        console.log(result);
- *        // false
- *        // result is false since none of the files exists
- *    }
- *);
+ * // The `_.matchesProperty` iteratee shorthand.
+ * _.some(users, ['active', false]);
+ * // => true
  *
- * // Using Promises
- * async.some(['dir1/missing.txt','dir2/missing.txt','dir3/file5.txt'], fileExists)
- * .then( result => {
- *     console.log(result);
- *     // true
- *     // result is true since some file in the list exists
- * }).catch( err => {
- *     console.log(err);
- * });
- *
- * async.some(['dir1/missing.txt','dir2/missing.txt','dir4/missing.txt'], fileExists)
- * .then( result => {
- *     console.log(result);
- *     // false
- *     // result is false since none of the files exists
- * }).catch( err => {
- *     console.log(err);
- * });
- *
- * // Using async/await
- * async () => {
- *     try {
- *         let result = await async.some(['dir1/missing.txt','dir2/missing.txt','dir3/file5.txt'], fileExists);
- *         console.log(result);
- *         // true
- *         // result is true since some file in the list exists
- *     }
- *     catch (err) {
- *         console.log(err);
- *     }
- * }
- *
- * async () => {
- *     try {
- *         let result = await async.some(['dir1/missing.txt','dir2/missing.txt','dir4/missing.txt'], fileExists);
- *         console.log(result);
- *         // false
- *         // result is false since none of the files exists
- *     }
- *     catch (err) {
- *         console.log(err);
- *     }
- * }
- *
+ * // The `_.property` iteratee shorthand.
+ * _.some(users, 'active');
+ * // => true
  */
-function some(coll, iteratee, callback) {
-    return (0, _createTester2.default)(Boolean, res => res)(_eachOf2.default, coll, iteratee, callback);
+function some(collection, predicate, guard) {
+  var func = isArray(collection) ? arraySome : baseSome;
+  if (guard && isIterateeCall(collection, predicate, guard)) {
+    predicate = undefined;
+  }
+  return func(collection, baseIteratee(predicate, 3));
 }
-exports.default = (0, _awaitify2.default)(some, 3);
-module.exports = exports.default;
+
+module.exports = some;

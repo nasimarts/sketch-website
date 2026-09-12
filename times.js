@@ -1,50 +1,51 @@
-'use strict';
+var baseTimes = require('./_baseTimes'),
+    castFunction = require('./_castFunction'),
+    toInteger = require('./toInteger');
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = times;
+/** Used as references for various `Number` constants. */
+var MAX_SAFE_INTEGER = 9007199254740991;
 
-var _timesLimit = require('./timesLimit.js');
+/** Used as references for the maximum length and index of an array. */
+var MAX_ARRAY_LENGTH = 4294967295;
 
-var _timesLimit2 = _interopRequireDefault(_timesLimit);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+/* Built-in method references for those with the same name as other `lodash` methods. */
+var nativeMin = Math.min;
 
 /**
- * Calls the `iteratee` function `n` times, and accumulates results in the same
- * manner you would use with [map]{@link module:Collections.map}.
+ * Invokes the iteratee `n` times, returning an array of the results of
+ * each invocation. The iteratee is invoked with one argument; (index).
  *
- * @name times
  * @static
- * @memberOf module:ControlFlow
- * @method
- * @see [async.map]{@link module:Collections.map}
- * @category Control Flow
- * @param {number} n - The number of times to run the function.
- * @param {AsyncFunction} iteratee - The async function to call `n` times.
- * Invoked with the iteration index and a callback: (n, next).
- * @param {Function} callback - see {@link module:Collections.map}.
- * @returns {Promise} a promise, if no callback is provided
+ * @since 0.1.0
+ * @memberOf _
+ * @category Util
+ * @param {number} n The number of times to invoke `iteratee`.
+ * @param {Function} [iteratee=_.identity] The function invoked per iteration.
+ * @returns {Array} Returns the array of results.
  * @example
  *
- * // Pretend this is some complicated async factory
- * var createUser = function(id, callback) {
- *     callback(null, {
- *         id: 'user' + id
- *     });
- * };
+ * _.times(3, String);
+ * // => ['0', '1', '2']
  *
- * // generate 5 users
- * async.times(5, function(n, next) {
- *     createUser(n, function(err, user) {
- *         next(err, user);
- *     });
- * }, function(err, users) {
- *     // we should now have 5 users
- * });
+ *  _.times(4, _.constant(0));
+ * // => [0, 0, 0, 0]
  */
-function times(n, iteratee, callback) {
-    return (0, _timesLimit2.default)(n, Infinity, iteratee, callback);
+function times(n, iteratee) {
+  n = toInteger(n);
+  if (n < 1 || n > MAX_SAFE_INTEGER) {
+    return [];
+  }
+  var index = MAX_ARRAY_LENGTH,
+      length = nativeMin(n, MAX_ARRAY_LENGTH);
+
+  iteratee = castFunction(iteratee);
+  n -= MAX_ARRAY_LENGTH;
+
+  var result = baseTimes(length, iteratee);
+  while (++index < n) {
+    iteratee(index);
+  }
+  return result;
 }
-module.exports = exports.default;
+
+module.exports = times;
