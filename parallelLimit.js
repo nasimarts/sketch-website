@@ -1,41 +1,55 @@
 'use strict';
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = parallelLimit;
+module.exports = parallelLimit;
 
-var _eachOfLimit = require('./internal/eachOfLimit.js');
-
-var _eachOfLimit2 = _interopRequireDefault(_eachOfLimit);
-
-var _parallel = require('./internal/parallel.js');
-
-var _parallel2 = _interopRequireDefault(_parallel);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * The same as [`parallel`]{@link module:ControlFlow.parallel} but runs a maximum of `limit` async operations at a
- * time.
- *
- * @name parallelLimit
- * @static
- * @memberOf module:ControlFlow
- * @method
- * @see [async.parallel]{@link module:ControlFlow.parallel}
- * @category Control Flow
- * @param {Array|Iterable|AsyncIterable|Object} tasks - A collection of
- * [async functions]{@link AsyncFunction} to run.
- * Each async function can complete with any number of optional `result` values.
- * @param {number} limit - The maximum number of async operations at a time.
- * @param {Function} [callback] - An optional callback to run once all the
- * functions have completed successfully. This function gets a results array
- * (or object) containing all the result arguments passed to the task callbacks.
- * Invoked with (err, results).
- * @returns {Promise} a promise, if a callback is not passed
+/*!
+ * ignore
  */
-function parallelLimit(tasks, limit, callback) {
-    return (0, _parallel2.default)((0, _eachOfLimit2.default)(limit), tasks, callback);
+
+function parallelLimit(fns, limit, callback) {
+  let numInProgress = 0;
+  let numFinished = 0;
+  let error = null;
+
+  if (limit <= 0) {
+    throw new Error('Limit must be positive');
+  }
+
+  if (fns.length === 0) {
+    return callback(null, []);
+  }
+
+  for (let i = 0; i < fns.length && i < limit; ++i) {
+    _start();
+  }
+
+  function _start() {
+    fns[numFinished + numInProgress](_done(numFinished + numInProgress));
+    ++numInProgress;
+  }
+
+  const results = [];
+
+  function _done(index) {
+    return (err, res) => {
+      --numInProgress;
+      ++numFinished;
+
+      if (error != null) {
+        return;
+      }
+      if (err != null) {
+        error = err;
+        return callback(error);
+      }
+
+      results[index] = res;
+
+      if (numFinished === fns.length) {
+        return callback(null, results);
+      } else if (numFinished + numInProgress < fns.length) {
+        _start();
+      }
+    };
+  }
 }
-module.exports = exports.default;

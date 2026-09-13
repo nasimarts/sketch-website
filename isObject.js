@@ -1,5 +1,16 @@
-var convert = require('./convert'),
-    func = convert('isObject', require('../isObject'), require('./_falseOptions'));
+'use strict';
 
-func.placeholder = require('./placeholder');
-module.exports = func;
+/**
+ * Determines if `arg` is an object.
+ *
+ * @param {Object|Array|String|Function|RegExp|any} arg
+ * @api private
+ * @return {Boolean}
+ */
+
+module.exports = function(arg) {
+  return (
+    Buffer.isBuffer(arg) ||
+    Object.prototype.toString.call(arg) === '[object Object]'
+  );
+};

@@ -1,5 +1,12 @@
-var convert = require('./convert'),
-    func = convert('once', require('../once'), require('./_falseOptions'));
+'use strict';
 
-func.placeholder = require('./placeholder');
-module.exports = func;
+module.exports = function once(fn) {
+  let called = false;
+  return function() {
+    if (called) {
+      return;
+    }
+    called = true;
+    return fn.apply(null, arguments);
+  };
+};
